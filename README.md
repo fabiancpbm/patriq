@@ -1,5 +1,56 @@
 # patriq
 
+## design system
+
+```mermaid
+  C4Context
+  title patriq Design System
+
+  Person(user, "User", "The user that want to handle your financial life.")
+  
+  System_Ext(openFinance, "Open Finance API", "The open API from the Open Banking iniciative in Brasil")
+
+  Enterprise_Boundary(b0, "patriq Software System") {
+
+    System(mobileApp, "Mobile App", "The mobile App for the user experience.")
+
+    System(gatewayApi, "Gateway API", "Responsible for render and interpret the content for the front-end.")
+
+    System(ledgerApi, "Ledger API", "Handles with the User Accounts, Account Types, Financial Institutions, and Transactions.")
+
+    System(userApi, "User API", "Handles with the User information and sessions.")
+
+    SystemDb(ledgerDb, "Ledger DB", "A relational database to store  FinancialInstitution, Account, AccountType, and Transaction")
+
+    SystemDb(userDb, "User DB", "A relational database to store Users.")
+
+    SystemDb(userS3, "User S3", "An S3 for users Blob files.")
+
+    Rel(userApi, userDb, "CRUD users")
+    
+    Rel(userApi, userS3, "CRUD users' pictures")
+
+    Rel(ledgerApi, ledgerDb, "CRUD ledger")
+
+    BiRel(user, mobileApp, "Register and login user, set accounts, bankings, and transactions, extracts, projects")
+
+    Rel(mobileApp, gatewayApi, "render product side information.")
+
+    Rel(gatewayApi, ledgerApi, "post(accounts), post(financial-institutions), post(transactions), get(extracts), get(financial-institutions)")
+
+    Rel(gatewayApi, userApi, "post(users), post(sessions), post(picture), get(users)")
+
+    Rel(ledgerApi, openFinance, "Get transactions")
+  }
+```
+
+<!-- SystemQueue(SystemF, "Banking System F Queue", "A system of the bank.")
+
+    Component(C, "CC", "CCzinho")
+
+    BiRel(openFinance, ledgerDb, "Uses")
+    Rel(ledger, openFinance, "Sends e-mails", "SMTP") -->
+
 ## bank-importer
 
 ### Import the bank transactions
