@@ -1,6 +1,6 @@
 # patriq
 
-## design system
+## System Design
 
 ```mermaid
   C4Context
@@ -20,6 +20,8 @@
 
     System(userApi, "User API", "Handles with the User information and sessions.")
 
+    System(bankImporterApi, "Bank Importer API", "API to get information from banking extract files.")
+
     SystemDb(ledgerDb, "Ledger DB", "A relational database to store  FinancialInstitution, Account, AccountType, and Transaction")
 
     SystemDb(userDb, "User DB", "A relational database to store Users.")
@@ -30,11 +32,13 @@
     
     Rel(userApi, userS3, "CRUD users' pictures")
 
+    Rel(bankImporterApi, ledgerApi, "post(transactions)")
+
     Rel(ledgerApi, ledgerDb, "CRUD ledger")
 
-    BiRel(user, mobileApp, "Register and login user, set accounts, bankings, and transactions, extracts, projects")
+    Rel(user, mobileApp, "Register and login user, set accounts, bankings, and transactions, extracts, projects")
 
-    Rel(mobileApp, gatewayApi, "render product side information.")
+    BiRel(mobileApp, gatewayApi, "render product side information.")
 
     Rel(gatewayApi, ledgerApi, "post(accounts), post(financial-institutions), post(transactions), get(extracts), get(financial-institutions)")
 
@@ -110,4 +114,13 @@ classDiagram
   Transaction "0..*" --> "1" Account: TargetID
   FinancialInstitution "1" o--> "1..*" Account: Accounts
   FinancialInstitution "0..*" --> "1..*" User: UserID
+```
+### Import transactions
+
+```bash
+curl -v POST localhost:8080/transactions  -d '
+{"sourceId":"d9fb7cd4-f650-4389-819b-b35429dfbfb2",
+ "targetId":"262056a2-5f69-4903-8149-f108a8e3b6d9",
+ "amount":10.5,
+ "date":"2024-09-01T00:00:00"}'
 ```
