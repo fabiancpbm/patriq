@@ -9,7 +9,7 @@
             "server": "localhost",
             "port": 3306,
             "driver": "MariaDB",
-            "name": "patriq_ledger",
+            "name": "patriq__ledger",
             "database": "ledger",
             "username": "root"
         }

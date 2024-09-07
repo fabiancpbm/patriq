@@ -61,13 +61,15 @@
 
 ```bash
 curl -v POST localhost:8080/triggers  -d '
-{"basePath":"/Users/fabian.brandao/Documents/patriq/bankimporter/input/",
- "year":2024,
- "month":8,
- "day":1,
- "bank":"nubank",
- "account":"154250440",
- "type":"statement"}'
+{
+    "basePath":"/Users/fabian.brandao/Documents/patriq/bankimporter/input/",
+    "year":2024,
+    "month":8,
+    "day":1,
+    "bank":"nubank",
+    "account":"154250440",
+    "type":"statement"
+}'
 ```
 - `type`: 
   - `statement`: the type used for debit extract
@@ -87,7 +89,13 @@ classDiagram
   class Account {
     ID uuid.UUID
     Name string
+    SourceName string
     CreatedAt time.Time
+  }
+
+  class AccountTag {
+    ID uuid.UUID
+    Name string
   }
 
   class Transaction {
@@ -109,18 +117,30 @@ classDiagram
   }
 
   Account "0..*" -->  "1" AccountType: Type
+  
   Account "0..*" --> "1" User: UserID
+  
+  Account "0..*" --> "1" AccountTag: AccountID
+  
   Transaction "0..*" --> "1" Account: SourceID
+  
   Transaction "0..*" --> "1" Account: TargetID
-  FinancialInstitution "1" o--> "1..*" Account: Accounts
+  
+  FinancialInstitution "1" o--> "1..*" Account: TagID
+  
+  AccountTag "0..*" --> "1" User: UserID
+  
   FinancialInstitution "0..*" --> "1..*" User: UserID
 ```
+
 ### Import transactions
 
 ```bash
 curl -v POST localhost:8080/transactions  -d '
-{"sourceId":"d9fb7cd4-f650-4389-819b-b35429dfbfb2",
- "targetId":"262056a2-5f69-4903-8149-f108a8e3b6d9",
- "amount":10.5,
- "date":"2024-09-01T00:00:00"}'
+{
+    "sourceId":"d9fb7cd4-f650-4389-819b-b35429dfbfb2",
+    "targetId":"262056a2-5f69-4903-8149-f108a8e3b6d9",
+    "amount":10.5,
+    "date":"2024-09-02T23:11:00-03:00"
+}'
 ```

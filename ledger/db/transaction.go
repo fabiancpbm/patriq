@@ -18,7 +18,7 @@ func findAllByUUID(database *sql.DB, columnName string, value uuid.UUID) ([]mode
 
 	for rows.Next() {
 		var transaction model.Transaction
-		err := rows.Scan(&transaction.ID, &transaction.SourceID, &transaction.TargetID, &transaction.Date, &transaction.Amount)
+		err := rows.Scan(&transaction.ID, &transaction.SourceID, &transaction.TargetID, &transaction.EventDate, &transaction.Date, &transaction.Amount)
 		if err != nil {
 			return nil, err
 		}
@@ -42,8 +42,8 @@ func FindById(database *sql.DB, idColumnName string, id uuid.UUID) (model.Transa
 
 func SaveTransaction(database *sql.DB, transaction model.Transaction) (*model.Transaction, error) {
 	_, err := database.Exec(
-		"INSERT INTO transaction (id, source_id, target_id, transaction_date, amount) VALUES (?, ?, ?, ?, ?)",
-		transaction.ID, transaction.SourceID, transaction.TargetID, transaction.Date, transaction.Amount)
+		"INSERT INTO transaction (id, source_id, target_id, transaction_date, event_date, amount) VALUES (?, ?, ?, ?, ?, ?)",
+		transaction.ID, transaction.SourceID, transaction.TargetID, transaction.Date, transaction.EventDate, transaction.Amount)
 	if err != nil {
 		return nil, err
 	}

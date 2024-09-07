@@ -17,7 +17,7 @@ type Transaction struct {
 	Amount   float32 `json:"amount"`
 }
 
-func dtoToModel(dto Transaction) (*model.Transaction, error) {
+func transactionDtoToModel(dto Transaction) (*model.Transaction, error) {
 	sourceID, err := uuid.Parse(dto.SourceID)
 	if err != nil {
 		return nil, err
@@ -30,33 +30,33 @@ func dtoToModel(dto Transaction) (*model.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &model.Transaction {
-		ID: uuid.New(),
-		SourceID: sourceID,
-		TargetID: targetID,
-		Amount: dto.Amount,
-		Date: date,
+	return &model.Transaction{
+		ID:        uuid.New(),
+		SourceID:  sourceID,
+		TargetID:  targetID,
+		Amount:    dto.Amount,
+		Date:      date,
 		EventDate: time.Now(),
 	}, nil
 }
 
 func (dependences *Dependences) PostTransaction(c *gin.Context) {
-	var transaction Transaction
-	if err := c.BindJSON(&transaction); err != nil {
+	var dto Transaction
+	if err := c.BindJSON(&dto); err != nil {
 		c.JSON(http.StatusBadRequest, `{"error": "could not read json for [POST:transaction]"}`)
 		return
 	}
 
-	model, err := dtoToModel(transaction)
+	transaction, err := transactionDtoToModel(dto)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, `{"error": "could not read json for [POST:transaction]"}`)
+		c.JSON(http.StatusBadRequest, `{"error": "reading the body transaction"}`)
 		return
 	}
 
-	saved, err := controller.CreateTransaction(dependences.Database, model)
+	saved, err := controller.CreateTransaction(dependences.Database, transaction)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, `{"error": "` + err.Error() + `"}`)
+		c.JSON(http.StatusInternalServerError, `{"error": "`+err.Error()+`"}`)
 		return
 	}
-	c.JSON(http.StatusProcessing, saved)
+	c.JSON(http.StatusCreated, saved)
 }
