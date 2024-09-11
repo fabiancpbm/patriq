@@ -2,54 +2,31 @@ package api
 
 import (
 	"database/sql"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"patriq.com.br/ledger/db"
 )
 
-type AbstractAPI[DTO any, Model any] struct {
-	Resource string
-	Database *sql.DB
+type IApiPort[PostDtoIn any, Model any, PostDtoOut any] interface {
+	PostDtoToModel(dto *PostDtoIn) (*Model, error)
+	PostModelToDto(model *Model) (*PostDtoOut, error)
 }
 
-type API[DTO any, Model any] interface {
-	DTOToModel(dto DTO) (*Model, error)
-	Save(database *sql.DB, model Model) (*Model, error)
-}
-
-
-func (abstractApi *AbstractAPI[DTO, Model]) Post(c *gin.Context, api API[DTO, Model]) {
-	var dto DTO
-	if err := c.BindJSON(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, `{"error": "could not read json for [POST:`+
-			abstractApi.Resource+
-			`]"}`)
-		return
-	}
-
-	model, err := api.DTOToModel(dto)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, `{"error": "reading the body of `+
-			abstractApi.Resource+
-			`"}`)
-		return
-	}
-
-	saved, err := create(abstractApi.Database, api, model)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, `{"error": "`+
-			err.Error()+
-			`"}`)
-		return
-	}
-	c.JSON(http.StatusCreated, saved)
-}
-
-func create[DTO any, Model any](database *sql.DB, objectConverter API[DTO, Model], model *Model) (*Model, error) {
-	saved, err := objectConverter.Save(database, *model)
+func Post[PostDtoIn any, Model any, Entity any, PostDtoOut any](
+	iApi IApiPort[PostDtoIn, Model, PostDtoOut],
+	iPersistence db.IPersistencePort[Entity, Model],
+	database *sql.DB,
+	dto *PostDtoIn) (*PostDtoOut, error) {
+	model, err := iApi.PostDtoToModel(dto)
 	if err != nil {
 		return nil, err
 	}
-
-	return saved, nil
+	//Apply logic here.
+	savedModel, err := db.Save[Entity, Model](iPersistence, database, model)
+	if err != nil {
+		return nil, err
+	}
+	dtoOut, err := iApi.PostModelToDto(savedModel)
+	if err != nil {
+		return nil, err
+	}
+	return dtoOut, err
 }

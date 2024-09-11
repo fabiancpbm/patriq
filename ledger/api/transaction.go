@@ -1,23 +1,30 @@
 package api
 
 import (
-	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"patriq.com.br/ledger/controller"
 	"patriq.com.br/ledger/model"
 )
 
-type Transaction struct {
+type TransactionIn struct {
 	SourceID string  `json:"sourceId"`
 	TargetID string  `json:"targetId"`
 	Date     string  `json:"date"`
 	Amount   float32 `json:"amount"`
 }
 
-func transactionDtoToModel(dto Transaction) (*model.Transaction, error) {
+type TransactionOut struct {
+	ID       string  `json:"id"`
+	SourceID string  `json:"sourceId"`
+	TargetID string  `json:"targetId"`
+	Date     string  `json:"date"`
+	Amount   float32 `json:"amount"`
+}
+
+type TransactionAPI struct {}
+
+func (api *TransactionAPI) PostDtoToModel(dto *TransactionIn) (*model.Transaction, error) {
 	sourceID, err := uuid.Parse(dto.SourceID)
 	if err != nil {
 		return nil, err
@@ -40,23 +47,6 @@ func transactionDtoToModel(dto Transaction) (*model.Transaction, error) {
 	}, nil
 }
 
-func (dependences *Dependences) PostTransaction(c *gin.Context) {
-	var dto Transaction
-	if err := c.BindJSON(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, `{"error": "could not read json for [POST:transaction]"}`)
-		return
-	}
-
-	transaction, err := transactionDtoToModel(dto)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, `{"error": "reading the body transaction"}`)
-		return
-	}
-
-	saved, err := controller.CreateTransaction(dependences.Database, transaction)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, `{"error": "`+err.Error()+`"}`)
-		return
-	}
-	c.JSON(http.StatusCreated, saved)
+func (api *TransactionAPI) PostModelToDto(model *model.Transaction) (*TransactionOut, error) {
+	return nil, nil
 }

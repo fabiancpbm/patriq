@@ -53,3 +53,28 @@ func SaveTransaction(database *sql.DB, transaction model.Transaction) (*model.Tr
 	}
 	return &savedTransaction, nil
 }
+
+type Transaction struct {
+
+}
+type TransactionPersistence struct {
+}
+
+func (this *TransactionPersistence) ModelToEntity(model *model.Transaction) (*Transaction, error) {
+	return nil, nil
+}
+
+func (this *TransactionPersistence) EntityToModel(entity *Transaction) (*model.Transaction, error) {
+	return nil, nil
+}
+
+func (this *TransactionPersistence) Save(database *sql.DB, entity *Transaction) (*Transaction, error) {
+	// database.Exec(
+	// 	"INSERT INTO transaction (id, source_id, target_id, transaction_date, event_date, amount) VALUES (?, ?, ?, ?, ?, ?)",
+	// 	entity.ID, entity.SourceID, entity.TargetID, entity.Date, entity.EventDate, entity.Amount)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return entity, nil
+	return nil, nil
+}

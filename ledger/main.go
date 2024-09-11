@@ -1,13 +1,13 @@
 package main
 
 import (
-	"database/sql"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"patriq.com.br/ledger/api"
 	"patriq.com.br/ledger/db"
+	"patriq.com.br/ledger/model"
 )
 
 type DTOTransaction struct {
@@ -25,43 +25,6 @@ type MTransaction struct {
 	EventDate time.Time `db:"event_date"`
 }
 
-type TransactionAPI struct {
-	api.AbstractAPI[DTOTransaction, MTransaction]
-}
-
-func (api *TransactionAPI) DTOToModel(dto DTOTransaction) (*MTransaction, error) {
-	sourceID, err := uuid.Parse(dto.SourceID)
-	if err != nil {
-		return nil, err
-	}
-	targetID, err := uuid.Parse(dto.TargetID)
-	if err != nil {
-		return nil, err
-	}
-	date, err := time.Parse(time.RFC3339, dto.Date)
-	if err != nil {
-		return nil, err
-	}
-	return &MTransaction{
-		ID:        uuid.New(),
-		SourceID:  sourceID,
-		TargetID:  targetID,
-		Amount:    dto.Amount,
-		Date:      date,
-		EventDate: time.Now(),
-	}, nil
-}
-
-func (api *TransactionAPI) Save(database *sql.DB, transaction MTransaction) (*MTransaction, error) {
-	_, err := database.Exec(
-		"INSERT INTO transaction (id, source_id, target_id, transaction_date, event_date, amount) VALUES (?, ?, ?, ?, ?, ?)",
-		transaction.ID, transaction.SourceID, transaction.TargetID, transaction.Date, transaction.EventDate, transaction.Amount)
-	if err != nil {
-		return nil, err
-	}
-	return &transaction, nil
-}
-
 func main() {
 	database, err := db.Connect()
 	if err != nil {
@@ -69,18 +32,20 @@ func main() {
 	}
 
 	router := gin.Default()
-	
-	transactionApi := &TransactionAPI{
-		AbstractAPI: api.AbstractAPI[DTOTransaction, MTransaction]{
-			Resource: "transaction",
-			Database: database,
-		},
+
+	transactionApi := &api.TransactionAPI{}
+	transactionPersistence := &db.TransactionPersistence{}
+	abstractApiConfig := &AbstractApiConfig[api.TransactionIn, model.Transaction, db.Transaction, api.TransactionOut]{
+		Resource:   "transaction",
+		Database:   database,
+		Api: transactionApi,
+		Persistence: transactionPersistence,
 	}
 
 	router.POST(
-		"/transactions", 
+		"/transactions",
 		func(c *gin.Context) {
-			transactionApi.Post(c, transactionApi)
+			abstractApiConfig.Post(c)
 		})
 	router.Run(":8080")
 }
