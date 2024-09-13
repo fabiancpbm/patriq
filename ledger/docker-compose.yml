@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.5
+    container_name: patriq_ledger_db_container
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ledger
+      MYSQL_USER: ledger_user
+      MYSQL_PASSWORD: 12345678
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./ledger.sql:/docker-entrypoint-initdb.d/ledger.sql
+    networks:
+      - patriq-network
+
+networks:
+  patriq-network:
+    driver: bridge
