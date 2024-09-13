@@ -7,10 +7,11 @@ import (
 )
 
 type Transaction struct {
-	ID        uuid.UUID `db:"id"`
-	SourceID  uuid.UUID `db:"source_id"`
-	TargetID  uuid.UUID `db:"target_id"`
-	Date      time.Time `db:"transaction_date"`
-	Amount    float32   `db:"amount"`
-	EventDate time.Time `db:"event_date"`
+	ID         uuid.UUID
+	SourceID   uuid.UUID
+	TargetID   uuid.UUID
+	Date       time.Time
+	Amount     float32
+	EventDate  time.Time
+	CategoryID uuid.UUID
 }

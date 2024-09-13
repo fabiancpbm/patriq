@@ -2,7 +2,9 @@ package api
 
 import (
 	"database/sql"
+
 	"patriq.com.br/ledger/db"
+	"patriq.com.br/ledger/logic"
 )
 
 type IApiPort[PostDtoIn any, Model any, PostDtoOut any] interface {
@@ -12,6 +14,7 @@ type IApiPort[PostDtoIn any, Model any, PostDtoOut any] interface {
 
 func Post[PostDtoIn any, Model any, Entity any, PostDtoOut any](
 	iApi IApiPort[PostDtoIn, Model, PostDtoOut],
+	iLogic logic.ILogic[Model],
 	iPersistence db.IPersistencePort[Entity, Model],
 	database *sql.DB,
 	dto *PostDtoIn) (*PostDtoOut, error) {
@@ -19,8 +22,13 @@ func Post[PostDtoIn any, Model any, Entity any, PostDtoOut any](
 	if err != nil {
 		return nil, err
 	}
-	//Apply logic here.
-	savedModel, err := db.Save[Entity, Model](iPersistence, database, model)
+	
+	validModel, err := iLogic.Validate(model)
+	if err != nil {
+		return nil, err
+	}
+
+	savedModel, err := db.Save[Entity, Model](iPersistence, database, validModel)
 	if err != nil {
 		return nil, err
 	}

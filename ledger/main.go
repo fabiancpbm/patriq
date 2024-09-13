@@ -1,29 +1,14 @@
 package main
 
 import (
-	"time"
+	"database/sql"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"patriq.com.br/ledger/api"
 	"patriq.com.br/ledger/db"
+	"patriq.com.br/ledger/logic"
 	"patriq.com.br/ledger/model"
 )
-
-type DTOTransaction struct {
-	SourceID string  `json:"sourceId"`
-	TargetID string  `json:"targetId"`
-	Date     string  `json:"date"`
-	Amount   float32 `json:"amount"`
-}
-type MTransaction struct {
-	ID        uuid.UUID `db:"id"`
-	SourceID  uuid.UUID `db:"source_id"`
-	TargetID  uuid.UUID `db:"target_id"`
-	Date      time.Time `db:"transaction_date"`
-	Amount    float32   `db:"amount"`
-	EventDate time.Time `db:"event_date"`
-}
 
 func main() {
 	database, err := db.Connect()
@@ -33,19 +18,60 @@ func main() {
 
 	router := gin.Default()
 
-	transactionApi := &api.TransactionAPI{}
-	transactionPersistence := &db.TransactionPersistence{}
-	abstractApiConfig := &AbstractApiConfig[api.TransactionIn, model.Transaction, db.Transaction, api.TransactionOut]{
-		Resource:   "transaction",
-		Database:   database,
-		Api: transactionApi,
-		Persistence: transactionPersistence,
-	}
-
+	router.POST(
+		"/account-types",
+		func(c *gin.Context) {
+			getAccountTypeApiConfig(database).Post(c)
+		})
+	router.POST(
+		"/accounts",
+		func(c *gin.Context) {
+			getAccountApiConfig(database).Post(c)
+		})
 	router.POST(
 		"/transactions",
 		func(c *gin.Context) {
-			abstractApiConfig.Post(c)
+			getTransactionApiConfig(database).Post(c)
 		})
+
 	router.Run(":8080")
+}
+
+func getAccountTypeApiConfig(database *sql.DB) *AbstractApiConfig[api.AccoutTypeIn, model.AccountType, db.AccountType, api.AccountTypeOut] {
+	accountTypeApi := &api.AccountTypeAPI{}
+	accountTypeLogic := &logic.AccountTypeLogic{}
+	accountTypePersistence := &db.AccountTypePersistence{}
+	return &AbstractApiConfig[api.AccoutTypeIn, model.AccountType, db.AccountType, api.AccountTypeOut]{
+		Resource:    "account_type",
+		Database:    database,
+		Api:         accountTypeApi,
+		Logic:       accountTypeLogic,
+		Persistence: accountTypePersistence,
+	}
+}
+
+func getAccountApiConfig(database *sql.DB) *AbstractApiConfig[api.AccountIn, model.Account, db.Account, api.AccountOut] {
+	accountApi := &api.AccountAPI{}
+	accountLogic := &logic.AccountLogic{}
+	accountPersistence := &db.AccountPersistence{}
+	return &AbstractApiConfig[api.AccountIn, model.Account, db.Account, api.AccountOut]{
+		Resource:    "account",
+		Database:    database,
+		Api:         accountApi,
+		Logic:       accountLogic,
+		Persistence: accountPersistence,
+	}
+}
+
+func getTransactionApiConfig(database *sql.DB) *AbstractApiConfig[api.TransactionIn, model.Transaction, db.Transaction, api.TransactionOut] {
+	transactionApi := &api.TransactionAPI{}
+	transactionLogic := &logic.TransactionLogic{}
+	transactionPersistence := &db.TransactionPersistence{}
+	return &AbstractApiConfig[api.TransactionIn, model.Transaction, db.Transaction, api.TransactionOut]{
+		Resource:    "transaction",
+		Database:    database,
+		Api:         transactionApi,
+		Logic:       transactionLogic,
+		Persistence: transactionPersistence,
+	}
 }
